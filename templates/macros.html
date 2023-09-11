@@ -1,0 +1,335 @@
+{% from 'bootstrap5/form.html' import render_field %}
+{% from 'bootstrap5/form.html' import render_form %}
+
+<!-- Macro to create a Container and individual tasks within respective containers -->
+
+{% macro create_container_cards (container_name,data_list) %}
+<div class="col-sm-6 col-md-4 col-xl-3">
+    <div class="card bg-primary-subtle">
+        <div class="card-body">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 d-flex">
+                        <h6 id="STATUS_{{container_name.replace(' ','_')}}" class="card-title text-center text-uppercase col-sm-9 col-12">{{container_name}}</h6>
+                        <button type="button" class="btn btn-primary btn-xs mx-1 col-sm-3 col-12 " role="button"
+                            data-bs-toggle="modal" data-bs-target="#CreateNewModal_add_task">
+                            ADD +
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="dropzone rounded" ondragleave="clearDrop(event)" ondragover="allowDrop(event)"
+                ondrop="drop(event)"> &nbsp;
+            </div>
+            {% for task in data_list %}
+                {% if task.status== container_name %}
+                    <div class="items ">
+                        <div class="flip-card card draggable" draggable="true" id="cd{{task.id}}" ondragstart="drag(event)">
+                            <div class="flip-card-inner ">
+                                <div class="flip-card-front  mb-2">
+                                    <div aria-label="Example 1px high" aria-valuemax="100" aria-valuemin="0" aria-valuenow="80"
+                                        class="progress" role="progressbar" style="height: 1px">
+                                        <div class="progress-bar bg-success" style="width: {{task.percent_complete}}%"></div>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <div class="card-title">
+
+                                            <img class="rounded-circle float-end"
+                                                src="https://eu.ui-avatars.com/api/?name={{task.name_assignee.replace(' ','+')}}&size=30"
+                                                alt="Initials">
+                                            <p class="p font-weight-light">{{task.title}}</p>
+                                        </div>
+                                    </div>
+                                    <div class="card-footer col-12 d-flex justify-content-between position-absolute bottom-0">
+                                        <i class="bi bi-card-checklist">
+                                            <span>{{task.percent_complete}}%</span></i>
+                                        <span class="text-small">Due {{task.due_date}} </span>
+                                    </div>
+                                </div>
+                                <div class="flip-card-back">
+                                    <div aria-label="Example 1px high" aria-valuemax="100" aria-valuemin="0" aria-valuenow="80"
+                                        class="progress" role="progressbar" style="height: 1px">
+                                        <div class="progress-bar bg-success" style="width: {{task.percent_complete}}%"></div>
+                                    </div>
+                                    <div class="card-body p-2">
+                                        <div class="card-title">
+                                            <img class="rounded-circle float-end"
+                                                src="https://eu.ui-avatars.com/api/?name={{task.name_assignee.replace(' ','+')}}&size=30"
+                                                alt="Initials">
+                                        </div>
+                                        <p class="card-text p-2">
+                                            {{task.description}}
+                                        </p>
+                                        <div class="d-flex flex-row justify-content-center">
+
+
+                                            <button type="button" class="btn btn-primary btn-xs mx-1" role="button"
+                                                data-bs-toggle="modal" data-bs-target="#UpdateNewModal_task_{{task.id}}">
+                                                Edit
+                                            </button>
+
+
+                                            <button type="button" class="btn btn-danger btn-xs mx-1" role="button"
+                                                data-bs-toggle="modal" data-bs-target="#DeleteModal_task_{{task.id}}">
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="dropzone rounded" ondragleave="clearDrop(event)" ondragover="allowDrop(event)"
+                            ondrop="drop(event)"> &nbsp;
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endmacro %}
+
+<!-- Macro to create a Update form modal for every task in the task list -->
+
+{% macro create_update_modal (data_list,form) %}
+{% for task in data_list %}
+<div class="modal fade" id="UpdateNewModal_task_{{task.id}}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Update Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/" class="needs-validation" method="post" novalidate>
+                <div class="modal-body update-modal">
+
+                    {{ form.csrf_token() }}
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="id">Task ID</label>
+                        <input type="number" readonly class="form-control-plaintext" id="id" name="id"
+                            value="{{task.id}}">
+                    </div>
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="title">Title</label>
+                        <input type="text" class="form-control overflow-auto" id="title" name="title"
+                            value="{{task.title}}" required>
+                        <div class="invalid-feedback">
+                            Please enter a title
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="description">Description</label>
+                        <textarea class="form-control overflow-auto" cols="20" id="description" name="description"
+                            rows="3" required>{{task.description}}</textarea>
+                        <div class="invalid-feedback">
+                            Please enter brief description
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="name_assignee">Assignee</label>
+                        <input type="text" class="form-control" id="name_assignee" name="name_assignee"
+                            value="{{task.name_assignee}}" required>
+                        <div class="invalid-feedback">
+                            Please enter a Assignee
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="status">Status</label>
+                        <select class="form-select" id="status" name="status" value="{{task.status}}" required>
+                            <option selected>{{task.status}}</option>
+                            <option value="TO DO">TO DO</option>
+                            <option value="IN PROGRESS">IN PROGRESS</option>
+                            <option value="REVIEW">REVIEW</option>
+                            <option value="COMPLETE">COMPLETE</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a valid option
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+                    <div class="mb-3 required">
+                        <label class="form-label" for="due_date">Due Date</label>
+                        <input class="form-control" id="due_date" name="due_date" type="date" value="{{task.due_date}}"
+                            required>
+                        <div class="invalid-feedback">
+                            Please select/ enter a valid date
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+                    <div class="mb-3 required">
+                        <label class="form-label" for="percent_complete">Percent Complete</label>
+                        <input class="form-control" id="percent_complete" max="100" min="0" name="percent_complete"
+                            type="number" value="{{task.percent_complete}}" required>
+                        <div class="invalid-feedback">
+                            Please enter a integer value between 0 and 100
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endmacro %}
+
+<!-- Macro to create a delete form modal for every task in the task list -->
+{% macro delete_modal (data_list,form) %}
+{% for task in data_list %}
+<div class="modal fade" id="DeleteModal_task_{{task.id}}" tabindex="-1">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/delete" class="needs-validation" method="post" novalidate>
+                <div class="modal-body">
+
+                    {{ form.csrf_token() }}
+                    <h6>Are you sure to delete the below Task:</h6>
+                    <p>Title: {{task.title}}</p>
+                    <div class="mb-3 required">
+                        <label class="form-label visually-hidden"" for=" id">Task ID</label>
+                        <input type="number" class="visually-hidden" readonly class="form-control-plaintext" id="id"
+                            name="id" value="{{task.id}}">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-danger">Delete Task</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endmacro %}
+
+
+<!-- Macro to create a Add form modal for every container in the task list -->
+
+{% macro create_addtask_modal (form) %}
+
+<div class="modal fade" id="CreateNewModal_add_task" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create Task</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/add" class="needs-validation" method="post" novalidate>
+                <div class="modal-body update-modal">
+
+                    {{ form.csrf_token() }}
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="title">Title</label>
+                        <input type="text" class="form-control overflow-auto" id="title" name="title"
+                            placeholder="Title" required>
+                        <div class="invalid-feedback">
+                            Please enter a title
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="description">Description</label>
+                        <textarea class="form-control overflow-auto" cols="20" id="description" name="description"
+                            placeholder="Description" rows="3" required></textarea>
+                        <div class="invalid-feedback">
+                            Please enter brief description
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="name_assignee">Assignee</label>
+                        <input type="text" class="form-control" id="name_assignee" name="name_assignee"
+                            placeholder="Firstname Lastname" required>
+                        <div class="invalid-feedback">
+                            Please enter a Assignee
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+
+                    <div class="mb-3 required">
+                        <label class="form-label" for="status">Status</label>
+                        <select class="form-select" id="status" name="status" required>
+                            <option selected>TO DO</option>
+                            <option value="TO DO">TO DO</option>
+                            <option value="IN PROGRESS">IN PROGRESS</option>
+                            <option value="REVIEW">REVIEW</option>
+                            <option value="COMPLETE">COMPLETE</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a valid option
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+                    <div class="mb-3 required">
+                        <label class="form-label" for="due_date">Due Date</label>
+                        <input class="form-control" id="due_date" name="due_date" type="date" placeholder="MM/DD/YYYY"
+                            required>
+                        <div class="invalid-feedback">
+                            Please select/ enter a valid date
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+                    <div class="mb-3 required">
+                        <label class="form-label" for="percent_complete">Percent Complete</label>
+                        <input class="form-control" name="percent_complete" id="percent_complete" max="100" min="0" placeholder="0"
+                            type="number" required>
+                        <div class="invalid-feedback">
+                            Please enter a integer value between 0 and 100
+                        </div>
+                        <div class="valid-feedback">
+                            Looks Good
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Add Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endmacro %}

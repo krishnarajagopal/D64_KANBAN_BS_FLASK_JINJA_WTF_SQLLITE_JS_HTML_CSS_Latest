@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% from 'macros.html' import create_container_cards,create_update_modal, delete_modal,create_addtask_modal %}
+
+{% block title %} Kanban {% endblock %}
+
+{% block content %}
+
+<div class="container-fluid pt-3">
+    <h3 class="font-weight-light">Kanban Board</h3>
+    <div class="small">Drag and drop between swim lanes</div>
+
+
+    <div class="row flex-row flex-sm-nowrap p-1 m-1">
+        {{ create_container_cards("TO DO",tasks) }}
+        {{ create_container_cards("IN PROGRESS",tasks) }}
+        {{ create_container_cards("REVIEW",tasks) }}
+        {{ create_container_cards("COMPLETE",tasks) }}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block modal %}
+{{create_update_modal(tasks,form)}}
+
+{{delete_modal (tasks,form)}}
+{{create_addtask_modal (form)}}
+{% endblock %}
